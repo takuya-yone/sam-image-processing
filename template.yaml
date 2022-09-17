@@ -11,6 +11,35 @@ Globals:
     TracingEnabled: True
 
 Resources:
+
+  ImageProcessLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /
+      RoleName: 'ImageProcessLambdaRole'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
+        - 'arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'
+      Policies:
+        - PolicyName: "ImageProcessS3AccessPolicy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "s3:*"
+                Resource: !GetAtt ImageS3Bucket.Arn
+
   ImageS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -38,18 +67,36 @@ Resources:
         AllowHeaders: "'*'"
         AllowOrigin: "'*'"
 
-  ImageProcessFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+  GetImageProcessFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      CodeUri: image_process/
+      Role: !GetAtt ImageProcessLambdaRole.Arn
+      CodeUri: get_image_process/
       Handler: app.lambda_handler
       Runtime: python3.9
       Architectures:
         - x86_64
       Events:
         GetImage:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             RestApiId: !Ref SAMImageProcessApi
             Path: /image
             Method: get
+
+  PostImageProcessFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Role: !GetAtt ImageProcessLambdaRole.Arn
+      CodeUri: post_image_process/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        GetImage:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SAMImageProcessApi
+            Path: /image
+            Method: post
