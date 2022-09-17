@@ -16,19 +16,15 @@ IMAGE_BUCKET_NAME = os.environ['IMAGE_BUCKET_NAME']
 @logger.inject_lambda_context(log_event=True)
 def lambda_handler(event, context):
 
-    # logger.info(IMAGE_BUCKET_NAME)
     payload = json.loads(event['body'])
-    # logger.info(payload['image'])
 
-    # "data:image/png;base64,iVBORw0KG"
     rawdata = payload['image']
     rawdata_split = rawdata.split(',')
-    # logger.info(rawdata_split)
     b64image = rawdata_split[1]
     binimage = base64.b64decode(b64image.encode("UTF-8"))
 
-    # S3 Put Image
     try:
+        # S3 Put Image
         s3client = boto3.client('s3')
         object_key = 'image/{}.png'.format(uuid.uuid4())
         put_res = s3client.put_object(
@@ -38,19 +34,20 @@ def lambda_handler(event, context):
         )
         logger.info(put_res)
 
-        presign_res = s3client.generate_presigned_url(
+        # Generate Presigned URL
+        presigned_res = s3client.generate_presigned_url(
             ClientMethod='get_object',
             Params={'Bucket': IMAGE_BUCKET_NAME, 'Key': object_key},
             ExpiresIn=300,
             HttpMethod='GET'
         )
-        logger.info(presign_res)
 
+        # return response
         res = {
             "isBase64Encoded": True,
             "statusCode": 200,
             "headers": {},
-            "body": json.dumps({"status": 1, "presignURL": presign_res})
+            "body": json.dumps({"status": 1, "presignURL": presigned_res})
         }
         return res
 
@@ -62,12 +59,3 @@ def lambda_handler(event, context):
             "body": json.dumps({"message": str(e)})
         }
         return res
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "hello world",
-            # "image": binimage
-            # "location": ip.text.replace("\n", "")
-        }),
-    }
