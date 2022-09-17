@@ -32,7 +32,6 @@ def lambda_handler(event, context):
             Body=binimage,
             Key=object_key
         )
-        logger.info(put_res)
 
         # Generate Presigned URL
         presigned_res = s3client.generate_presigned_url(
@@ -44,20 +43,22 @@ def lambda_handler(event, context):
 
         # Analyze Picture
         rekognition_client = boto3.client('rekognition')
-        presigned_res = s3client.generate_presigned_url(
-            ClientMethod='get_object',
-            Params={'Bucket': IMAGE_BUCKET_NAME, 'Key': object_key},
-            ExpiresIn=300,
-            HttpMethod='GET'
+        rekognition_res = rekognition_client.detect_faces(
+            Image={
+                "S3Object": {
+                    "Bucket": IMAGE_BUCKET_NAME,
+                    "Name": object_key,
+                }
+            },
+            Attributes=[
+                "ALL",  # DEFAULT | ALL
+            ]
         )
+        logger.info(rekognition_res)
 
         # return response
-        res = {
-            "isBase64Encoded": True,
-            "statusCode": 200,
-            "headers": {},
-            "body": json.dumps({"status": 1, "presignURL": presigned_res})
-        }
+        res = {"isBase64Encoded": True, "statusCode": 200, "headers": {}, "body": json.dumps(
+            {"status": 1, "presignURL": presigned_res, "rekognitionResult": rekognition_res})}
         return res
 
     except Exception as e:
