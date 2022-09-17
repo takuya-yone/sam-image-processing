@@ -37,7 +37,9 @@ Resources:
               - Effect: "Allow"
                 Action:
                   - "s3:*"
-                Resource: !GetAtt ImageS3Bucket.Arn
+                Resource: 
+                  - !GetAtt ImageS3Bucket.Arn
+                  - !Sub ${ImageS3Bucket.Arn}/*
 
   ImageS3Bucket:
     Type: AWS::S3::Bucket
