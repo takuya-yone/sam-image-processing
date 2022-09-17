@@ -29,6 +29,7 @@ Resources:
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole'
         - 'arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess'
         - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'
+        - 'arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess'
       Policies:
         - PolicyName: "ImageProcessS3AccessPolicy"
           PolicyDocument:
@@ -50,6 +51,14 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteRule
+            Prefix: image/
+            Status: Enabled
+            ExpirationInDays: 1
+            # ExpiredObjectDeleteMarker: True
+
       PublicAccessBlockConfiguration:
         BlockPublicAcls: True
         BlockPublicPolicy: True

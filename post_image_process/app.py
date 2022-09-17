@@ -42,6 +42,15 @@ def lambda_handler(event, context):
             HttpMethod='GET'
         )
 
+        # Analyze Picture
+        rekognition_client = boto3.client('rekognition')
+        presigned_res = s3client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params={'Bucket': IMAGE_BUCKET_NAME, 'Key': object_key},
+            ExpiresIn=300,
+            HttpMethod='GET'
+        )
+
         # return response
         res = {
             "isBase64Encoded": True,
