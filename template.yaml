@@ -16,6 +16,8 @@ Resources:
     Properties:
       Name: sam-image-processing
       StageName: v1
+      BinaryMediaTypes:
+        - image/jpeg
       Cors:
         AllowMethods: "'*'"
         AllowHeaders: "'*'"
