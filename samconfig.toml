@@ -1,0 +1,10 @@
+version = 0.1
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "sam-image-processing"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket-18dxk0fa350bx"
+s3_prefix = "sam-image-processing"
+region = "ap-northeast-1"
+capabilities = "CAPABILITY_NAMED_IAM"
+image_repositories = []
